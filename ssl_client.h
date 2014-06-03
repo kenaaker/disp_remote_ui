@@ -45,18 +45,20 @@
 #include <QtNetwork/QAbstractSocket>
 #include <QtNetwork/QSslSocket>
 
-class SslClient : public QWidget {
+class SslClient : public QObject {
     Q_OBJECT
 public:
     SslClient(QWidget *parent = 0);
     ~SslClient();
 
-private slots:
+public slots:
     void secureConnect();
+    void sendData(QString &cmd);
+
+private slots:
     void socketStateChanged(QAbstractSocket::SocketState state);
     void socketEncrypted();
     void socketReadyRead();
-    void sendData();
     void sslErrors(const QList<QSslError> &errors);
 
 private:

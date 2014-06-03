@@ -43,7 +43,7 @@
 #include <QSslSocket>
 
 SslClient::SslClient(QWidget *parent)
-    : QWidget(parent), socket(0) {
+    : QObject(parent), socket(0) {
 }
 
 SslClient::~SslClient() {
@@ -52,31 +52,27 @@ SslClient::~SslClient() {
 void SslClient::secureConnect() {
     if (!socket) {
         socket = new QSslSocket(this);
-
     }
     /* Add self-signed client and server certificates and CA */
-    socket->addCaCertificates(":/sensorweb_ca.pem");
-    socket->setLocalCertificate(":/sensorweb_client.pem");
-    socket->setPrivateKey(":/sensorweb_client.key", QSsl::Rsa, QSsl::Pem, "var6look");
+    socket->addCaCertificates(":/dispensary_ca.pem");
+    socket->setLocalCertificate(":/dispensary_client.pem");
+    socket->setPrivateKey(":/dispensary_client.key", QSsl::Rsa, QSsl::Pem, "serutan");
 
     connect(socket, SIGNAL(stateChanged(QAbstractSocket::SocketState)),
             this, SLOT(socketStateChanged(QAbstractSocket::SocketState)));
-    connect(socket, SIGNAL(encrypted()),
-            this, SLOT(socketEncrypted()));
-    connect(socket, SIGNAL(sslErrors(QList<QSslError>)),
-            this, SLOT(sslErrors(QList<QSslError>)));
-    connect(socket, SIGNAL(readyRead()),
-            this, SLOT(socketReadyRead()));
+    connect(socket, SIGNAL(encrypted()), this, SLOT(socketEncrypted()));
+    connect(socket, SIGNAL(sslErrors(QList<QSslError>)), this, SLOT(sslErrors(QList<QSslError>)));
+    connect(socket, SIGNAL(readyRead()), this, SLOT(socketReadyRead()));
 
-    QList<QSslCertificate> web_sensor_cert = QSslCertificate::fromPath(":/sensorweb_system_certificate.pem");
-    QSslError self_signed_error(QSslError::SelfSignedCertificate, web_sensor_cert.at(0));
-    QSslError host_name_mismatch(QSslError::HostNameMismatch, web_sensor_cert.at(0));
+    QList<QSslCertificate> dispensary_cert = QSslCertificate::fromPath(":/dispensary_system_certificate.pem");
+    QSslError self_signed_error(QSslError::SelfSignedCertificate, dispensary_cert.at(0));
+    QSslError host_name_mismatch(QSslError::HostNameMismatch, dispensary_cert.at(0));
     QList<QSslError> expected_ssl_errors;
     expected_ssl_errors.append(self_signed_error);
     expected_ssl_errors.append(host_name_mismatch);
     socket->ignoreSslErrors(expected_ssl_errors);
 
-    socket->connectToHostEncrypted("mars.aaker.org", 45046);
+    socket->connectToHostEncrypted("beagle-1.aaker.org", 45046);
 }
 
 void SslClient::socketStateChanged(QAbstractSocket::SocketState state) {
@@ -87,23 +83,29 @@ void SslClient::socketStateChanged(QAbstractSocket::SocketState state) {
 }
 
 void SslClient::socketEncrypted() {
+    qDebug() << "Entered socketEncrypted";
     if (!socket) {
         return;                 // might have disconnected already
     } else {
-
+        qDebug() << "Socket Encrypted";
     } /* endif */
 }
 
 void SslClient::socketReadyRead() {
+
 }
 
-void SslClient::sendData() {
-    socket->write("data\r\n");
+void SslClient::sendData(QString &cmd) {
+    QByteArray local_cmd;
+    local_cmd.append(cmd);
+    socket->write(local_cmd, local_cmd.size());
+    qDebug("wrote %d bytes", local_cmd.size());
+    socket->flush();
 }
 
 void SslClient::sslErrors(const QList<QSslError> &errors) {
     foreach (const QSslError &error, errors) {
-        ;
+        qDebug() << error;
     } /* endfor */
 
     socket->ignoreSslErrors();
