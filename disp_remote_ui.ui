@@ -15,6 +15,9 @@
   </property>
   <widget class="QWidget" name="dispensary_ui">
    <widget class="QGroupBox" name="dispensary_controls">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>10</x>

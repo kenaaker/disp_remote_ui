@@ -13,10 +13,18 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         disp_remote_ui.cpp \
-        ssl_client.cpp
+        ssl_client.cpp \
+        qt-watch.cpp \
+        zconfserviceclient.cpp \
+        zconfservicebrowser.cpp
 
 HEADERS  += disp_remote_ui.h \
-        ssl_client.h
+        ssl_client.h \
+        qt-watch.h \
+        zconfserviceclient.h \
+        zconfservicebrowser.h
+
+LIBS += -lavahi-common -lavahi-client
 
 RESOURCES += disp_rem_ui.qrc
 

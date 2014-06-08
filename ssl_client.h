@@ -44,12 +44,16 @@
 #include <QtWidgets/QWidget>
 #include <QtNetwork/QAbstractSocket>
 #include <QtNetwork/QSslSocket>
+#include <QTimer>
 
 class SslClient : public QObject {
     Q_OBJECT
 public:
     SslClient(QWidget *parent = 0);
     ~SslClient();
+signals:
+    void socket_up();
+    void socket_down();
 
 public slots:
     void secureConnect();
@@ -59,10 +63,12 @@ private slots:
     void socketStateChanged(QAbstractSocket::SocketState state);
     void socketEncrypted();
     void socketReadyRead();
+    void socketDisconnected();
     void sslErrors(const QList<QSslError> &errors);
 
 private:
     QSslSocket *socket;
+    QTimer reconnect_timer;
 };
 
 #endif
