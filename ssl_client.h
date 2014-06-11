@@ -51,6 +51,13 @@ class SslClient : public QObject {
 public:
     SslClient(QWidget *parent = 0);
     ~SslClient();
+    void set_server_ip(QString &host_name_or_ip) {
+        dispense_host_name_or_ip = host_name_or_ip;
+    }
+    void set_server_port(unsigned short port) {
+        dispense_port = port;
+    }
+
 signals:
     void socket_up();
     void socket_down();
@@ -67,6 +74,8 @@ private slots:
     void sslErrors(const QList<QSslError> &errors);
 
 private:
+    QString dispense_host_name_or_ip;
+    unsigned short dispense_port;
     QSslSocket *socket;
     QTimer reconnect_timer;
 };

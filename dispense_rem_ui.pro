@@ -24,16 +24,16 @@ HEADERS  += disp_remote_ui.h \
         zconfserviceclient.h \
         zconfservicebrowser.h
 
-LIBS += -lavahi-common -lavahi-client
-
 RESOURCES += disp_rem_ui.qrc
 
 FORMS    += disp_remote_ui.ui
+
+LIBS += -lavahi-client -lavahi-common
 
 CONFIG += mobility
 MOBILITY = 
 
 # install
-target.path = $$[QT_INSTALL_EXAMPLES]/network/securesocketclient
+target.path = /afs/aaker.org/home/kdaaker/src/dispense_rem_ui
 INSTALLS += target
 

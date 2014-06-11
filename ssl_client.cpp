@@ -58,28 +58,33 @@ void SslClient::secureConnect() {
             (socket->state() == QAbstractSocket::ConnectingState)) {
         reconnect_timer.stop();
     } else {
-        /* Add self-signed client and server certificates and CA */
-        socket->addCaCertificates(":/dispensary_ca.pem");
-        socket->setLocalCertificate(":/dispensary_client.pem");
-        socket->setPrivateKey(":/dispensary_client.key", QSsl::Rsa, QSsl::Pem, "serutan");
+        if (dispense_host_name_or_ip.isEmpty()) {
+            connect(&reconnect_timer, SIGNAL(timeout()), this, SLOT(secureConnect()));
+            reconnect_timer.start(2000);    /* Try to reconnect every two seconds */
+        } else {
+            /* Add self-signed client and server certificates and CA */
+            socket->addCaCertificates(":/dispensary_ca.pem");
+            socket->setLocalCertificate(":/dispensary_client.pem");
+            socket->setPrivateKey(":/dispensary_client.key", QSsl::Rsa, QSsl::Pem, "serutan");
 
-        connect(socket, SIGNAL(stateChanged(QAbstractSocket::SocketState)),
-                this, SLOT(socketStateChanged(QAbstractSocket::SocketState)));
-        connect(socket, SIGNAL(encrypted()), this, SLOT(socketEncrypted()));
-        connect(socket, SIGNAL(sslErrors(QList<QSslError>)), this, SLOT(sslErrors(QList<QSslError>)));
-        connect(socket, SIGNAL(readyRead()), this, SLOT(socketReadyRead()));
-        connect(socket, SIGNAL(disconnected()), this, SLOT(socketDisconnected()));
-        connect(&reconnect_timer, SIGNAL(timeout()), this, SLOT(secureConnect()));
+            connect(socket, SIGNAL(stateChanged(QAbstractSocket::SocketState)),
+                    this, SLOT(socketStateChanged(QAbstractSocket::SocketState)));
+            connect(socket, SIGNAL(encrypted()), this, SLOT(socketEncrypted()));
+            connect(socket, SIGNAL(sslErrors(QList<QSslError>)), this, SLOT(sslErrors(QList<QSslError>)));
+            connect(socket, SIGNAL(readyRead()), this, SLOT(socketReadyRead()));
+            connect(socket, SIGNAL(disconnected()), this, SLOT(socketDisconnected()));
+            connect(&reconnect_timer, SIGNAL(timeout()), this, SLOT(secureConnect()));
 
-        QList<QSslCertificate> dispensary_cert = QSslCertificate::fromPath(":/dispensary_system_certificate.pem");
-        QSslError self_signed_error(QSslError::SelfSignedCertificate, dispensary_cert.at(0));
-        QSslError host_name_mismatch(QSslError::HostNameMismatch, dispensary_cert.at(0));
-        QList<QSslError> expected_ssl_errors;
-        expected_ssl_errors.append(self_signed_error);
-        expected_ssl_errors.append(host_name_mismatch);
-        socket->ignoreSslErrors(expected_ssl_errors);
+            QList<QSslCertificate> dispensary_cert = QSslCertificate::fromPath(":/dispensary_system_certificate.pem");
+            QSslError self_signed_error(QSslError::SelfSignedCertificate, dispensary_cert.at(0));
+            QSslError host_name_mismatch(QSslError::HostNameMismatch, dispensary_cert.at(0));
+            QList<QSslError> expected_ssl_errors;
+            expected_ssl_errors.append(self_signed_error);
+            expected_ssl_errors.append(host_name_mismatch);
+            socket->ignoreSslErrors(expected_ssl_errors);
 
-        socket->connectToHostEncrypted("beagle-1.aaker.org", 45046);
+            socket->connectToHostEncrypted(dispense_host_name_or_ip, dispense_port);
+        } /* endif */
     } /* endif */
 }
 

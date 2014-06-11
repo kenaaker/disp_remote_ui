@@ -22,6 +22,8 @@ void disp_remote_ui::service_found(QString service_string) {
     qDebug() << "Found dispensary at " << service_string;
     this_service = disp_svc->serviceEntry(service_string);
     qDebug() << "Service entry is " << this_service.ip << "protocol is " << this_service.protocolName() << "host" << this_service.host << "port is" << this_service.port;
+    disp_connection.set_server_ip(this_service.ip);
+    disp_connection.set_server_port(this_service.port);
 }
 
 void disp_remote_ui::socket_up() {
